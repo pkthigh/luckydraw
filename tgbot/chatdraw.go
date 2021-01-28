@@ -7,6 +7,7 @@ import (
 	"luckydraw/log"
 	"luckydraw/model"
 	"math/rand"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -29,7 +30,7 @@ func init() {
 	defaultAwards = []*model.Awards{
 		&model.Awards{		Name:"Mackbook Pro(16)",  Num: 1},
 		&model.Awards{		Name:"DJI Mavic 2 pro",   Num: 2},
-		&model.Awards{		Name:"iPhone 12 Pro Max",  Num: 3},
+		&model.Awards{		Name:"iPhone 12 Pro Max",  Num: 3 },
 		&model.Awards{		Name:"Ipad Pro",  Num: 4},
 		&model.Awards{		Name:"Apple Watch Series 6",  Num: 5},
 		&model.Awards{		Name:"AirPods Max",  Num: 6},
@@ -531,21 +532,29 @@ func PrintAwards(list []*model.Awards) string {
 		return "空"
 	}
 
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].Order < list[j].Order
+	})
+
+	var sortNames []string
 	var awardsInfo = make(map[string]int)
 	for _, a := range list {
-		if num, ok := awardsInfo[a.Name]; ok {
-			awardsInfo[a.Name] = num + a.Num
+		//log.Deubugf("%d %+v\n",index,a.Name)
+		if _, ok := awardsInfo[a.Name]; ok {
+			awardsInfo[a.Name] += a.Num
 		}else {
 			awardsInfo[a.Name] =  a.Num
+			sortNames = append(sortNames, a.Name)
 		}
 	}
+	log.Deubugf("\n#########################\nsortNames: %s\n",strings.Join(sortNames, ", "))
 
 	var plans []string
 	var total int
-	for name, num := range awardsInfo {
-		str := fmt.Sprintf("%s : 【 %d 】", name, num)
+	for _, name := range sortNames {
+		str := fmt.Sprintf("%s : 【 %d 】", name, awardsInfo[name])
 		plans = append(plans, str)
-		total += num
+		total += awardsInfo[name]
 	}
 	sum := fmt.Sprintf("total: 【 %d 】", total)
 	plans = append(plans, sum)
@@ -559,15 +568,24 @@ func PrintRecords(list []*model.AwardsRecord) string {
 	if len(list) == 0 {
 		return "空"
 	}
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].Order < list[j].Order
+	})
+	var sortNames []string //排序的名字
 	var rinfo = make(map[string][]string)
 	for _, r := range list {
+		//log.Deubugf("%+v\n", r.Awards)
 		item := rinfo[r.Awards.Name]
 		item = append(item, r.User.Name)
 		rinfo[r.Awards.Name] = item
+		if len(item) == 1 {
+			sortNames = append(sortNames,r.Awards.Name)
+		}
 	}
 
 	var plans []string
-	for aname, owners := range rinfo {
+	for _, aname := range sortNames {
+		owners := rinfo[aname]
 		str := fmt.Sprintf("%s -->: [ %s ]",aname, strings.Join(owners, ", "))
 		plans = append(plans, str)
 	}

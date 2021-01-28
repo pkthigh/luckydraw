@@ -54,6 +54,8 @@ func (udraw *UserDraw)AddAwardsInfo(name string, num int, img string) {
 		Img: img,
 	}
 	udraw.AddTotalAwards(item)
+	newItem := udraw.totalAwards[name]
+	item.Order = newItem.Order
 	if num > 0 {
 		for i := 0; i < num; i++ {
 			a := item.Copy()
@@ -75,6 +77,7 @@ func (udraw *UserDraw)AddTotalAwards(item *model.Awards) error {
 		old.Num += item.Num
 	} else {
 		udraw.totalAwards[item.Name] = item.Copy()
+		udraw.totalAwards[item.Name].Order = len(udraw.totalAwards)
 	}
 	return nil
 }

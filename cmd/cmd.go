@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"fmt"
 	"luckydraw/draw"
 	"luckydraw/log"
 	"luckydraw/model"
-	"strings"
+	"luckydraw/tgbot"
+
 )
 
 var awards = []*model.Awards{
@@ -70,77 +70,19 @@ func LetsDraw() {
 	udraw.ResetLeftAdwards()
 
 	users := udraw.GetLeftUser()
-	PrintUser(users)
+	tgbot.PrintUser(users)
 
-	log.Deubugf("adwards: \n")
+
 	awardsList := udraw.GetLeftAdwards()
-	PrintAwards(awardsList)
+	log.Deubugf("adwards: %d\n", len(awardsList))
+	tgbot.PrintAwards(awardsList)
 
-	for udraw.MakeNextDrawUser() != nil {
+	for udraw.MakeNextDrawUser(draw.RANDOM_UID) != nil {
 		udraw.DrawAdwards()
 	}
 
 	records := udraw.GetRecordList()
-	PrintRecords(records)
+	tgbot.PrintRecords(records)
 
 }
 
-func PrintUser(list []*model.User) string {
-	var plans  []string
-	for _, u := range list {
-		str := fmt.Sprintf("ID: %d Name: %s", u.ID, u.Name)
-		plans = append(plans, str)
-	}
-	totalinfo := fmt.Sprintf("total: %d", len(list))
-	plans = append(plans, totalinfo)
-	info := strings.Join(plans, "\n")
-	log.Deubugf(info)
-	log.Deubugf("\n")
-	return info
-}
-
-func PrintAwards(list []*model.Awards) string {
-	var awardsInfo = make(map[string]int)
-	for _, a := range list {
-		if num, ok := awardsInfo[a.Name]; ok {
-			awardsInfo[a.Name] = num + a.Num
-		}else {
-			awardsInfo[a.Name] =  a.Num
-		}
-	}
-
-	var plans []string
-	var total int
-	for name, num := range awardsInfo {
-		str := fmt.Sprintf("%s : %d", name, num)
-		plans = append(plans, str)
-		total += num
-	}
-	sum := fmt.Sprintf("total: %d", total)
-	plans = append(plans, sum)
-	info := strings.Join(plans, "\n")
-	log.Deubugf(info)
-	log.Deubugf("\n")
-	return info
-}
-
-func PrintRecords(list []*model.AwardsRecord) string {
-	var rinfo = make(map[string][]string)
-	for _, r := range list {
-		item := rinfo[r.Awards.Name]
-		item = append(item, r.User.Name)
-		rinfo[r.Awards.Name] = item
-	}
-
-	var plans []string
-	for aname, owners := range rinfo {
-		str := fmt.Sprintf("%s: [ %s ]",aname, strings.Join(owners, ", "))
-		plans = append(plans, str)
-	}
-	total := fmt.Sprintf("total: %d", len(list))
-	plans = append(plans, total)
-	info := strings.Join(plans, "\n")
-	log.Deubugf(info)
-	log.Deubugf("\n")
-	return info
-}
